@@ -1,139 +1,139 @@
-# Duet Night Abyss - Automatikus Halászat Bot
+# Duet Night Abyss — Automatic Fishing Bot
 
-Ez a Python script automatikusan játsza a halászat minijátékot a **Duet Night Abyss** játékban. A bot detektálja a hal ikont és a kapszulát a képernyőn, majd automatikusan nyomja a Space gombot, amikor a hal a kapszulán belül van.
+This Python script automates the fishing minigame in the Duet Night Abyss game. The bot detects the fish icon and the capsule on screen and automatically presses the Space key when the fish is inside the capsule.
 
-## 🎯 Funkciók
+## 🎯 Features
 
-- **Automatikus hal ikon detektálás**: Több template használatával robusztus detektálás, még akkor is, ha a hal ikon elfordul
-- **Kapszula pozíció követés**: Pontos kapszula detektálás
-- **Intelligens Space gomb vezérlés**: Automatikusan nyomja/engedi a Space-t a hal pozíciója alapján (keyboard library használatával)
-- **Debug mód**: Vizuális visszajelzés a detektált objektumokról
-- **Magas FPS**: ~30 FPS vagy jobb teljesítmény
-- **Biztonságos kilépés**: ESC gomb megnyomásával bármikor kiléphet
+- Automatic fish icon detection using template matching (multiple templates supported for robustness)
+- Capsule position tracking for accurate timing
+- Intelligent Space key control (press/release automatically based on fish position)
+- Debug mode with visual overlays to help diagnose detections
+- Designed for high FPS (target ~30 FPS)
+- Safe exit via the ESC key
 
-## 📦 Telepítés
+## 📦 Installation
 
-1. **Függőségek telepítése**:
+1. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **Template képek előkészítése**:
-   - Készítsd el a `templates/` mappát (ha még nem létezik)
-   - **Hal ikon**: Mentsd el a hal sprite sheet-et `templates/fish.png` néven
-     - A script automatikusan feldarabolja a 4x8-as rácsot 32 frame-re
-     - Ha nincs sprite sheet, használhatsz egyedi template fájlokat is (`fish_1.png`, `fish_2.png`, stb.)
-   - **Kapszula**: Mentsd el a kapszula képet `templates/capsule.png` néven
+2. Prepare template images:
 
-## 🖼️ Template képek készítése
+- Create the `templates/` folder if it does not exist.
+- Fish icon: save the sprite sheet as `templates/fish.png`.
+  - The script can automatically split a 4x8 sprite sheet into 32 frames.
+  - If you don't have a sprite sheet, you can provide individual template images (e.g. `fish_1.png`, `fish_2.png`).
+- Capsule: save the capsule image as `templates/capsule.png`.
 
-### Hal ikon (`fish.png`) - Sprite Sheet (Ajánlott)
-A játékfájlokból exportált hal ikon általában egy **4x8-as rács sprite sheet** (32 frame).
+## 🖼️ Template Images
 
-1. **Játékfájlokból exportálás** (lásd: `EXTRACT_FROM_GAME_FILES.md`):
-   - Használd az UABE-t vagy AssetStudio-t
-   - Exportáld a hal sprite sheet-et PNG formátumban
-   - Mentsd el `templates/fish.png` néven
+### Fish icon (`templates/fish.png`) — Sprite Sheet (recommended)
 
-2. **A script automatikusan**:
-   - Felismeri a 4x8-as rácsot
-   - Feldarabolja 32 külön frame-re
-   - Mind a 32 frame-et használja a template matching-hez
+The exported fish icon from the game is commonly a 4x8 sprite sheet (32 frames).
 
-**Alternatíva**: Ha nincs sprite sheet, használhatsz egyedi template fájlokat:
-- `fish.png` - alap template
-- `fish_1.png`, `fish_2.png`, stb. - különböző szögek/frame-ek
+1. Export from the game files (see `EXTRACT_FROM_GAME_FILES.md`):
+   - Use UABE or AssetStudio to export the fish sprite sheet as PNG.
+   - Save it as `templates/fish.png`.
 
-### Kapszula (`capsule.png`)
-1. **Játékfájlokból exportálás**:
-   - Exportáld a kapszula képet PNG formátumban
-   - Mentsd el `templates/capsule.png` néven
+2. The script will:
+   - Detect a 4x8 layout and split it into 32 frames.
+   - Use the frames as templates for matching.
 
-2. **Vagy képernyőképről**:
-   - Használd az `extract_templates.py` eszközt
-   - Interaktívan vágd ki a kapszulát
+Alternatives: provide single-frame templates like `fish.png` or multiple templates `fish_1.png`, `fish_2.png`, etc.
 
-## ⚙️ Konfiguráció
+### Capsule (`templates/capsule.png`)
 
-A `main.py` fájl tetején található konfigurációs részben módosíthatod:
+1. Export the capsule image from game files or capture it from a screenshot.
+2. Save it as `templates/capsule.png`.
+3. You can use the helper `extract_templates.py` to crop templates interactively.
+
+## ⚙️ Configuration
+
+You can modify settings in `main.py` or the configuration section at the top of the script. Example configuration used by the project:
 
 ```python
-# Képernyő régió koordinátái
+# Screen region coordinates
 SCREEN_REGION = {
-    "top": 640,      # A régió felső sora
-    "left": 3220,    # A régió bal oldala
-    "width": 110,    # A régió szélessége
-    "height": 820    # A régió magassága
+    "top": 640,
+    "left": 3220,
+    "width": 110,
+    "height": 820
 }
 
-# Template matching threshold (0.0 - 1.0)
+# Template matching thresholds (0.0 - 1.0)
 FISH_THRESHOLD = 0.7
 CAPSULE_THRESHOLD = 0.7
 
-# FPS beállítás
+# FPS target
 TARGET_FPS = 30
 
-# Debug mód
+# Debug mode
 DEBUG_MODE = True
 ```
 
-### Képernyő régió beállítása
+### Setting the screen region
 
-1. Indítsd el a játékot és menj a halászat minijátékhoz
-2. Használj egy képernyő koordináta eszközt (pl. Windows: Snipping Tool koordinátái)
-3. Határozd meg a hal ikon és kapszula tartományát
-4. Állítsd be a `SCREEN_REGION` értékeit
+1. Start the game and open the fishing minigame.
+2. Determine coordinates for the region where the fish and capsule appear (use a coordinate tool or screenshot helper).
+3. Set `SCREEN_REGION` accordingly.
 
-**Tipp**: A régió minél kisebb, annál gyorsabb a feldolgozás!
+Tip: The smaller the region, the faster the processing.
 
-## 🚀 Használat
+## 🚀 Usage
 
-1. **Indítsd el a játékot** és menj a halászat minijátékhoz
-2. **Futtasd a scriptet**:
+1. Start the game and go to the fishing minigame.
+2. Run the script:
+
 ```bash
 python main.py
 ```
 
-3. **3 másodperc van** a pozíció beállítására
-4. A bot automatikusan elindul
-5. **Nyomd meg az ESC gombot** a kilépéshez
+3. You have ~3 seconds to position things.
+4. The bot starts automatically.
+5. Press ESC to exit at any time.
 
-## 🐛 Hibaelhárítás
+## 🐛 Troubleshooting
 
-### A bot nem találja a hal ikont
-- Ellenőrizd, hogy a `templates/fish.png` létezik és helyes
-- Csökkentsd a `FISH_THRESHOLD` értékét (pl. 0.6)
-- Ellenőrizd, hogy a `SCREEN_REGION` koordinátái helyesek
-- Használd a debug módot, hogy lásd, mit lát a bot
+### Bot doesn't find the fish icon
 
-### A bot nem találja a kapszulát
-- Ellenőrizd, hogy a `templates/capsule.png` létezik és helyes
-- Csökkentsd a `CAPSULE_THRESHOLD` értékét
-- Ellenőrizd a képernyő régió beállításait
+- Verify that `templates/fish.png` exists and contains the correct images.
+- Lower `FISH_THRESHOLD` (for example, to 0.6).
+- Verify `SCREEN_REGION` coordinates are correct.
+- Use `DEBUG_MODE` to visualize detections and see what the bot sees.
 
-### A bot túl lassú
-- Csökkentsd a `SCREEN_REGION` méretét
-- Növeld a `TARGET_FPS` értékét (de ne túl magasra, mert instabil lehet)
-- Kisebb template képeket használj
+### Bot doesn't find the capsule
 
-### A Space gomb nem működik
-- Ellenőrizd, hogy a játék ablak aktív
-- Próbáld ki manuálisan, hogy a Space gomb működik-e a játékban
-- Nézd meg, hogy nincs-e más program, ami blokkolja a billentyűzet bemenetet
+- Verify that `templates/capsule.png` is correct.
+- Lower `CAPSULE_THRESHOLD` if needed.
+- Check the `SCREEN_REGION` configuration.
 
-## 📝 Megjegyzések
+### Bot is too slow
 
-- A bot csak a megadott képernyő régiót figyeli
-- A template matching grayscale módban működik a sebességért
-- A bot automatikusan elengedi a Space gombot, ha nem talál halat vagy kapszulát
-- A PyAutoGUI failsafe funkciója aktív: vigyétek az egeret a képernyő sarkába a vészhelyzeti leállításhoz
+- Reduce the size of `SCREEN_REGION`.
+- Increase `TARGET_FPS` (but be cautious; too high may cause instability).
+- Use smaller template images to speed up matching.
 
-## ⚠️ Felelősség
+### Space key doesn't work
 
-Ez a script csak oktatási célokra készült. Használd saját felelősségre. A játék fejlesztői ellenőrizhetik az automatikus játékot, és akár bannolhatnak is.
+- Ensure the game window is active and accepts keyboard input.
+- Test pressing Space manually while the game is focused.
+- Ensure no other program is intercepting or blocking keyboard events.
 
-## 📄 Licenc
+## 📝 Notes
 
-Ez a projekt szabadon használható oktatási célokra.
+- The bot only monitors the specified screen region.
+- Template matching runs in grayscale for speed.
+- The bot releases Space when no fish or capsule is detected.
+- PyAutoGUI failsafe is active; move your mouse to a screen corner to abort.
+
+## ⚠️ Disclaimer
+
+This script is intended for educational purposes only. Use it at your own risk — game developers may detect automated players and apply sanctions.
+
+## 📄 License
+
+This project is provided for educational use.
 
 
