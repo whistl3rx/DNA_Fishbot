@@ -149,18 +149,18 @@ class FishingBot:
                 # Use the unified detector helper for cast detection. It accepts
                 # either color/BGRA or grayscale screenshots and returns a center
                 # coordinate and confidence when found.
-                cast_pos, cast_conf = Detector.find_template(screenshot, self.template_loader.cast_template, CAST_THRESHOLD)
+                cast_pos, cast_conf = Detector.find_template(screenshot, self.template_loader.autoreel_template, CAST_THRESHOLD)
 
                 # Show live debug overlay for waiting phase and save per-frame phase matches
                 if DEBUG_MODE and self.debug is not None:
                     detections = {
-                        'cast': {'pos': cast_pos, 'conf': cast_conf, 'template': self.template_loader.cast_template, 'color': (0, 255, 255)}
+                        'cast': {'pos': cast_pos, 'conf': cast_conf, 'template': self.template_loader.autoreel_template, 'color': (0, 255, 255)}
                     }
                     self.debug.show_live(screenshot_bgr, detections, window_pos=DEBUG_WINDOW_POSITION)
-                    try:
-                        self.debug.save_debug_images(screenshot_bgr, screenshot, cast_pos, None, None, None, None, frame_num)
-                    except Exception:
-                        pass
+                    # try:
+                    #     self.debug.save_debug_images(screenshot_bgr, screenshot, cast_pos, None, None, None, None, frame_num)
+                    # except Exception:
+                    #     pass
                     
 
                 if cast_pos is not None:
@@ -228,7 +228,6 @@ class FishingBot:
 
                 cast_pos, cast_conf = Detector.find_template(screenshot, self.template_loader.cast_template, CAST_THRESHOLD)
                 bite_pos, bite_conf = Detector.find_template(screenshot, self.template_loader.bite_template, BITE_THRESHOLD)
-                catch_pos, catch_conf = Detector.find_template(screenshot, self.template_loader.catch_template, CATCH_THRESHOLD)
 
                 # Save per-frame phase matches for debugging (cast/bite/catch)
                 if DEBUG_MODE and self.debug is not None:
@@ -239,16 +238,14 @@ class FishingBot:
                             gray = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2GRAY)
                         except Exception:
                             gray = None
-                    try:
-                        self.debug.save_debug_images(screenshot_bgr, gray, cast_pos, bite_pos, catch_pos, None, None, frame_num)
-                    except Exception:
-                        pass
+                    # try:
+                    #     self.debug.save_debug_images(screenshot_bgr, gray, cast_pos, bite_pos, None, None, None, frame_num)
+                    # except Exception:
+                    #     pass
 
                 if DEBUG_MODE and self.debug is not None:
                     detections = {
-                        # 'cast': {'pos': cast_pos, 'conf': cast_conf, 'template': self.template_loader.cast_template, 'color': (0, 255, 255)},
-                        'bite': {'pos': bite_pos, 'conf': bite_conf, 'template': self.template_loader.bite_template, 'color': (0, 128, 255)},
-                        'catch': {'pos': catch_pos, 'conf': catch_conf, 'template': self.template_loader.catch_template, 'color': (0, 0, 255)},
+                        'bite': {'pos': bite_pos, 'conf': bite_conf, 'template': self.template_loader.bite_template, 'color': (0, 128, 255)}
                     }
                     self.debug.show_live(screenshot_bgr, detections, window_pos=DEBUG_WINDOW_POSITION)
 
@@ -266,185 +263,15 @@ class FishingBot:
                         self.input.press_space()
                         print("✓ Catch action sent (Space)")
                     
-                        # Transition into reeling phase
-                        self.reeling()
-                        return
+                        # no reeling because of auto-reel trait
+                        print("✓ Fishing cycle complete.")
+                        self.restart_fishing()
                 
                 frame_num += 1
                 time.sleep(FRAME_DELAY)
 
         except KeyboardInterrupt:
             print("\n⏹ Biting phase interrupted by user.")
-
-    def reeling(self):
-        """Reeling phase: contains the main loop responsible for detection and input.
-
-        This was previously the `run()` method. It retains the same internal logic
-        but is focused solely on reeling behavior.
-        """
-        frame_count = 0
-        start_time = time.time()
-        # Ensure debugger has all templates available when re-entering reeling
-        if self.debug is None:
-            self.debug = Debugger(
-                self.base_dir / "debug",
-                fish_template=self.template_loader.fish_template,
-                capsule_template=self.template_loader.capsule_template,
-                cast_template=self.template_loader.cast_template,
-                bite_template=self.template_loader.bite_template,
-                catch_template=self.template_loader.catch_template,
-            )
-
-        try:
-            while True:
-                if keyboard.is_pressed(EXIT_KEY):
-                    print("\n⏹ Exiting...")
-                    break
-
-                frame_start = time.time()
-
-                current_region, _, _ = self.capture.get_screen_region()
-
-                try:
-                    screenshot = self.capture.grab(current_region)
-                    screenshot_bgr = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR)
-                    screenshot_gray = cv2.cvtColor(screenshot_bgr, cv2.COLOR_BGR2GRAY)
-                except Exception:
-                    continue
-
-                fish_pos, fish_confidence = Detector.find_template(screenshot_gray, self.template_loader.fish_template, FISH_THRESHOLD)
-                capsule_pos, capsule_confidence = Detector.find_template(screenshot_bgr, self.template_loader.capsule_template, CAPSULE_THRESHOLD)
-                # print(f"Fish confidence: {fish_confidence:.3f}, Capsule confidence: {capsule_confidence:.3f}")
-
-                # if DEBUG_MODE and (frame_count % 10 == 0 or fish_pos is not None or capsule_pos is not None):
-                #     self.debug.save_debug_images(screenshot_bgr, screenshot_gray, fish_pos, capsule_pos, frame_count)
-
-                action = ""
-                if capsule_pos is not None:
-                    if self.caps_start_pos is None:
-                        self.caps_start_pos = capsule_pos
-
-                    if fish_pos is not None:
-                        if fish_pos is None or capsule_pos is None:
-                            return False
-
-                        fish_h, fish_w = self.template_loader.fish_template.shape
-                        capsule_h, capsule_w = self.template_loader.capsule_template.shape
-
-                        fish_top = fish_pos[1] - fish_h // 2
-                        fish_bottom = fish_pos[1] + fish_h // 2
-                        fish_left = fish_pos[0] - fish_w // 2
-                        fish_right = fish_pos[0] + fish_w // 2
-
-                        capsule_top = capsule_pos[1] - capsule_h // 2
-                        capsule_bottom = capsule_pos[1] + capsule_h // 2
-                        capsule_left = capsule_pos[0] - capsule_w // 2
-                        capsule_right = capsule_pos[0] + capsule_w // 2
-                        capsule_center = capsule_pos[1]
-
-                        fish_in_capsule = (
-                            fish_pos[0] >= capsule_left and
-                            fish_pos[0] <= capsule_right and
-                            fish_pos[1] >= capsule_top and
-                            fish_pos[1] <= capsule_bottom
-                        )
-
-                        overlap = not (
-                            fish_right < capsule_left or
-                            fish_left > capsule_right or
-                            fish_bottom < capsule_top or
-                            fish_top > capsule_bottom
-                        )
-
-                        if InputFix.NOT == self.input_fixed:
-                            print("Switching to controller input")
-                            self.input_fixed = InputFix.FIXING
-                            self.input.hold_space()
-                            self.input_fixed = InputFix.DONE
-                            self.input.release_space()
-                            time.sleep(0.1)
-
-                        if self.caps_prev_pos is not None and Detector.in_tolerance(capsule_pos, self.caps_start_pos, 5):
-                            self.input.restart_space_pressing()
-                            action = f"HOLD (capsule did not start moving yet {capsule_pos}, {capsule_top})"
-                        elif fish_top < capsule_top:
-                            self.input.hold_space()
-                            action = "HOLD (fish above capsule)"
-                        elif fish_bottom > capsule_center:
-                            self.input.release_space()
-                            action = "RELEASE (fish in lower third of capsule, release)"
-                        elif fish_in_capsule or overlap:
-                            action = "HOLD (fish inside capsule - overlap hides fish)"
-                        else:
-                            self.input.release_space()
-                            action = "RELEASE (fish below capsule)"
-
-                        self.caps_prev_pos = capsule_pos
-                    else:
-                        action = "HOLD (fish likely inside capsule - not visible)"
-                elif fish_pos is not None:
-                    self.input.release_space()
-                    action = "RELEASE (no capsule)"
-                else:
-                    self.input.release_space()
-                    if InputFix.DONE == self.input_fixed:
-                        self.input_fixed = InputFix.NOT
-                    action = "SKIP (fish caoguht)"
-                    if time.time() - start_time > FISHING_TIME_MIN:
-                        print("✓ Fishing cycle complete.")
-                        self.restart_fishing()
-                        return
-
-                if DEBUG_MODE:
-                    debug_img = screenshot_bgr.copy()
-
-                    if fish_pos is not None:
-                        h, w = self.template_loader.fish_template.shape
-                        if fish_pos[0] - w // 2 >= 0 and fish_pos[1] - h // 2 >= 0:
-                            cv2.rectangle(debug_img, (fish_pos[0] - w // 2, fish_pos[1] - h // 2),
-                                            (fish_pos[0] + w // 2, fish_pos[1] + h // 2), (0, 255, 0), 2)
-                            cv2.putText(debug_img, f"Fish: {fish_confidence:.2f}",
-                                        (fish_pos[0] - w // 2, fish_pos[1] - h // 2 - 5),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
-
-                    if capsule_pos is not None:
-                        h, w = self.template_loader.capsule_template.shape
-                        cv2.rectangle(debug_img, (capsule_pos[0] - w // 2, capsule_pos[1] - h // 2),
-                                      (capsule_pos[0] + w // 2, capsule_pos[1] + h // 2), (255, 0, 255), 2)
-                        cv2.putText(debug_img, f"Capsule: {capsule_confidence:.2f}",
-                                    (capsule_pos[0] - w // 2, capsule_pos[1] - h // 2 - 5),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1)
-
-                    cv2.putText(debug_img, f"Action: {action}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
-                                (255, 255, 255), 2)
-
-                    window_name = "Debug - Duet Night Abyss Bot"
-                    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                    if DEBUG_WINDOW_POSITION is not None:
-                        cv2.moveWindow(window_name, DEBUG_WINDOW_POSITION[0], DEBUG_WINDOW_POSITION[1])
-                    cv2.imshow(window_name, debug_img)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
-
-                frame_count += 1
-                elapsed = time.time() - frame_start
-                sleep_time = max(0, FRAME_DELAY - elapsed)
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
-
-                if frame_count % 30 == 0:
-                    current_fps = frame_count / (time.time() - start_time)
-                    print(f"FPS: {current_fps:.1f} | Action: {action} | "
-                          f"Fish: {'✓' if fish_pos else '✗'} | "
-                          f"Capsule: {'✓' if capsule_pos else '✗'}")
-
-        except KeyboardInterrupt:
-            print("\n⏹ Interrupted by user.")
-        finally:
-            self.input.release_space()
-            if DEBUG_MODE:
-                cv2.destroyAllWindows()
-            print("\n✓ Bot stopped. Goodbye!")
 
     def restart_fishing(self):
         """Restart the fishing cycle by returning to the waiting phase."""

@@ -6,10 +6,9 @@ from pathlib import Path
 class TemplateLoader:
     """Loads fish and capsule templates from the `templates` directory."""
 
-    templates = ["1_cast_line",
+    templates = ["0_auto_reel",
                  "2_fish_bite",
-                 "3_catch", 
-                 "fish"]
+    ]
     rod_types = ["training",
                  "beginner",
                  "advanced",
@@ -19,11 +18,8 @@ class TemplateLoader:
 
     def __init__(self, base_dir: Path):
         self.templates_dir = base_dir / "templates"
-        self.fish_template = None
-        self.capsule_template = None
-        self.cast_template = None
+        self.autoreel_template = None
         self.bite_template = None
-        self.catch_template = None
 
     def detect_frame_bounds(self, sprite_sheet, rows=4, cols=8, threshold=10):
         """Automatically detect frame bounds and padding in a sprite sheet."""
@@ -57,15 +53,15 @@ class TemplateLoader:
         }
 
     def load_templates(self, rod_index):
-        cast_path = self.templates_dir / "1_cast_line.png"
-        if cast_path.exists():
-            self.cast_template = cv2.imread(str(cast_path), cv2.IMREAD_GRAYSCALE)
-            if self.cast_template is not None:
-                print("✓ Loaded: 1_cast_line.png")
+        autoreel_path = self.templates_dir / "0_auto_reel.png"
+        if autoreel_path.exists():
+            self.autoreel_template = cv2.imread(str(autoreel_path), cv2.IMREAD_GRAYSCALE)
+            if self.autoreel_template is not None:
+                print("✓ Loaded: 0_auto_reel.png")
             else:
-                print("⚠ Warning: Failed to load 1_cast_line.png")
+                print("⚠ Warning: Failed to load 0_auto_reel.png")
         else:
-            print(f"⚠ Warning: 1_cast_line.png not found in {self.templates_dir}!")
+            print(f"⚠ Warning: 0_auto_reel.png not found in {self.templates_dir}!")
 
         bite_path = self.templates_dir / "2_fish_bite.png"
         if bite_path.exists():
@@ -77,40 +73,5 @@ class TemplateLoader:
         else:
             print(f"⚠ Warning: 2_fish_bite.png not found in {self.templates_dir}!")
 
-        cath_path = self.templates_dir / "3_catch.png"
-        if cath_path.exists():
-            self.catch_template = cv2.imread(str(cath_path), cv2.IMREAD_GRAYSCALE)
-            if self.catch_template is not None:
-                print("✓ Loaded: 3_catch.png")
-            else:
-                print("⚠ Warning: Failed to load 3_catch.png")
-        else:
-            print(f"⚠ Warning: 3_catch.png not found in {self.templates_dir}!")
-
-        fish_path = self.templates_dir / "fish.png"
-        if fish_path.exists():
-            self.fish_template = cv2.imread(str(fish_path), cv2.IMREAD_GRAYSCALE)
-            if self.fish_template is not None:
-                print("✓ Loaded: fish.png")
-            else:
-                print("⚠ Warning: Failed to load fish.png")
-        else:
-            print(f"⚠ Warning: fish.png not found in {self.templates_dir}!")
-
-        # capsules are different for each rod
-        caps = "capsule_" + self.rod_types[rod_index] + ".png"
-        capsule_path = self.templates_dir / caps
-        if capsule_path.exists():
-            self.capsule_template = cv2.imread(str(capsule_path), cv2.IMREAD_GRAYSCALE)
-            if self.capsule_template is not None:
-                print(f"✓ Loaded: {caps}")
-            else:
-                print(f"⚠ Warning: Failed to load {caps}")
-        else:
-            print(f"⚠ Warning: {caps} not found in {self.templates_dir}!")
-
-        return self.cast_template is not None \
-                and self.bite_template is not None \
-                and self.catch_template is not None \
-                and self.fish_template is not None \
-                and self.capsule_template is not None
+        return self.autoreel_template is not None \
+                and self.bite_template is not None
