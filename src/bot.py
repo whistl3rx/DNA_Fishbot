@@ -199,7 +199,7 @@ class FishingBot:
         """
         print("Entering biting phase: waiting for bite to appear and resolve...")
 
-        if self.template_loader.bite_template is None or self.template_loader.catch_template is None:
+        if self.template_loader.bite_template is None or self.template_loader.autoreel_template is None:
             print("⚠ Missing bite or catch template; cannot run biting phase.")
             return
 
@@ -226,7 +226,6 @@ class FishingBot:
                 except Exception:
                     screenshot_bgr = screenshot
 
-                cast_pos, cast_conf = Detector.find_template(screenshot, self.template_loader.cast_template, CAST_THRESHOLD)
                 bite_pos, bite_conf = Detector.find_template(screenshot, self.template_loader.bite_template, BITE_THRESHOLD)
 
                 # Save per-frame phase matches for debugging (cast/bite/catch)
