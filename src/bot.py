@@ -82,11 +82,11 @@ class FishingBot:
         # Initialize debugger for live overlays (used by waiting/biting/reeling)
         self.debug = Debugger(
             self.base_dir / "debug",
-            fish_template=self.template_loader.fish_template,
-            capsule_template=self.template_loader.capsule_template,
-            cast_template=self.template_loader.cast_template,
+            fish_template=None,
+            capsule_template=None,
+            cast_template=self.template_loader.autoreel_template,
             bite_template=self.template_loader.bite_template,
-            catch_template=self.template_loader.catch_template,
+            catch_template=None,
         )
 
         print("\n⚠ Important: Running as administrator may be required for Space actions!")
@@ -120,7 +120,7 @@ class FishingBot:
         """
         print("Entering waiting phase: looking for cast indicator...")
 
-        if self.template_loader.cast_template is None:
+        if self.template_loader.autoreel_template is None:
             print("⚠ No cast template available; cannot run waiting phase.")
             return
 
