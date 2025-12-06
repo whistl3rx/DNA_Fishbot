@@ -1,6 +1,7 @@
 import cv2
 from pathlib import Path
 
+from src.config import DEBUG_SAVE_IMAGES
 
 class Debugger:
     """Saves debug images and overlays detection visuals."""
@@ -15,6 +16,9 @@ class Debugger:
         self.catch_template = catch_template
 
     def save_debug_images(self, screenshot_bgr, screenshot_gray, cast_pos, bite_pos, catch_pos, fish_pos, capsule_pos, frame_num):
+        if not DEBUG_SAVE_IMAGES:
+            return
+
         screenshot_path = self.debug_dir / f"frame_{frame_num:04d}_screenshot.png"
         cv2.imwrite(str(screenshot_path), screenshot_bgr)
 

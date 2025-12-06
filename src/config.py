@@ -17,9 +17,10 @@ REGION_RATIOS = {
     "height_ratio": REFERENCE_REGION["height"] / REFERENCE_HEIGHT,
 }
 
-BITING_TIMEOUT = 3.0 # seconds
+BITING_TIMEOUT = 2.0 # seconds
 FISHING_TIME_MIN = 5.0 # seconds
 FISH_CAUGHT_DELAY = 4.0 # seconds
+BIGGER_FISH_DELAY = 2.5 # seconds
 
 # Detection thresholds
 CAST_THRESHOLD = 0.7
@@ -34,6 +35,7 @@ FRAME_DELAY = 1.0 / TARGET_FPS
 
 # Debug / window
 DEBUG_MODE = True
+DEBUG_SAVE_IMAGES = False
 DEBUG_WINDOW_POSITION = None
 EXIT_KEY = 'esc'
 

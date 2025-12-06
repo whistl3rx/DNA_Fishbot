@@ -1,6 +1,7 @@
 import cv2
 import keyboard
 import time
+from consolemenu import SelectionMenu
 from pathlib import Path
 
 from src.config import (
@@ -10,6 +11,7 @@ from src.config import (
     BITING_TIMEOUT,
     FISHING_TIME_MIN,
     FISH_CAUGHT_DELAY,
+    BIGGER_FISH_DELAY,
     CAST_THRESHOLD,
     BITE_THRESHOLD,
     CATCH_THRESHOLD,
@@ -65,9 +67,12 @@ class FishingBot:
         print(f"  Debug mode: {DEBUG_MODE}")
         print(f"  Exit key: {EXIT_KEY.upper()}")
 
+        print(f"What type of Rod are you using?")
+        rod_idx = SelectionMenu.get_selection([r.capitalize() + " Rod" for r in self.template_loader.rod_types])
+
         # Load templates and run a short input test
         print("\nLoading templates...")
-        if not self.template_loader.load_templates():
+        if not self.template_loader.load_templates(rod_idx):
             print("\n❌ Error: Failed to load templates!")
             print("   Create templates/fish.png and templates/capsule.png files.")
             return
@@ -107,7 +112,7 @@ class FishingBot:
 
         self.waiting()
 
-    def waiting(self):
+    def waiting(self, recast = False):
         """Stub for the waiting phase.
 
         This phase should wait for the fishing opportunity (cast complete, idle),
@@ -121,6 +126,7 @@ class FishingBot:
 
         try:
             frame_num = 0
+            start_time = time.time()
             while True:
                 if keyboard.is_pressed(EXIT_KEY):
                     print("\n⏹ Exiting waiting phase (exit key pressed)")
@@ -171,6 +177,13 @@ class FishingBot:
                     # Transition to biting phase
                     self.biting()
                     return
+                else:
+                    if recast and time.time() - start_time > BIGGER_FISH_DELAY:
+                        print("⏲ Waiting phase: no cast detected yet, possible chance for bigger fish. Recasting...")
+                        time.sleep(0.5)
+                        self.input.press_space()
+                        self.biting()
+                        return
 
                 # Sleep a short time to avoid tight CPU loop
                 time.sleep(FRAME_DELAY)
@@ -245,7 +258,7 @@ class FishingBot:
                         biting_done = True
                     else:
                         if time.time() - start_time > BITING_TIMEOUT:
-                            print("⏲ Biting phase has not started after 5 seconds, pressing Space to retry cast.")
+                            print(f"⏲ Biting phase has not started after {BITING_TIMEOUT} seconds, pressing Space to retry cast.")
                             self.input.press_space()
                             start_time = time.time()
                 else:
@@ -445,7 +458,7 @@ class FishingBot:
         self.input.press_space()
 
         # small delay to endsure dialog is closed
-        time.sleep(0.5)
+        time.sleep(1.5)
 
         # restart the whole process
-        self.waiting()
+        self.waiting(True)

@@ -6,6 +6,17 @@ from pathlib import Path
 class TemplateLoader:
     """Loads fish and capsule templates from the `templates` directory."""
 
+    templates = ["1_cast_line",
+                 "2_fish_bite",
+                 "3_catch", 
+                 "fish"]
+    rod_types = ["training",
+                 "beginner",
+                 "advanced",
+                 "expert",
+                 "grandmaster"
+    ]
+
     def __init__(self, base_dir: Path):
         self.templates_dir = base_dir / "templates"
         self.fish_template = None
@@ -45,7 +56,7 @@ class TemplateLoader:
             'active_height': active_height
         }
 
-    def load_templates(self):
+    def load_templates(self, rod_index):
         cast_path = self.templates_dir / "1_cast_line.png"
         if cast_path.exists():
             self.cast_template = cv2.imread(str(cast_path), cv2.IMREAD_GRAYSCALE)
@@ -86,15 +97,17 @@ class TemplateLoader:
         else:
             print(f"⚠ Warning: fish.png not found in {self.templates_dir}!")
 
-        capsule_path = self.templates_dir / "capsule.png"
+        # capsules are different for each rod
+        caps = "capsule_" + self.rod_types[rod_index] + ".png"
+        capsule_path = self.templates_dir / caps
         if capsule_path.exists():
             self.capsule_template = cv2.imread(str(capsule_path), cv2.IMREAD_GRAYSCALE)
             if self.capsule_template is not None:
-                print("✓ Loaded: capsule.png")
+                print(f"✓ Loaded: {caps}")
             else:
-                print("⚠ Warning: Failed to load capsule.png")
+                print(f"⚠ Warning: Failed to load {caps}")
         else:
-            print(f"⚠ Warning: capsule.png not found in {self.templates_dir}!")
+            print(f"⚠ Warning: {caps} not found in {self.templates_dir}!")
 
         return self.cast_template is not None \
                 and self.bite_template is not None \
