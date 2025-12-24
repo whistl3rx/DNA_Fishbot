@@ -6,11 +6,9 @@ from src.config import DEBUG_SAVE_IMAGES
 class Debugger:
     """Saves debug images and overlays detection visuals."""
 
-    def __init__(self, debug_dir: Path, fish_template=None, capsule_template=None, cast_template=None, bite_template=None, catch_template=None):
+    def __init__(self, debug_dir: Path, cast_template=None, bite_template=None, catch_template=None):
         self.debug_dir = debug_dir
         self.debug_dir.mkdir(exist_ok=True)
-        self.fish_template = fish_template
-        self.capsule_template = capsule_template
         self.cast_template = cast_template
         self.bite_template = bite_template
         self.catch_template = catch_template
@@ -37,14 +35,6 @@ class Debugger:
             if self.catch_template is not None:
                 catch_template_path = self.debug_dir / "catch_template_.png"
                 cv2.imwrite(str(catch_template_path), self.catch_template)
-
-            if self.fish_template is not None:
-                fish_template_path = self.debug_dir / "fish_template_.png"
-                cv2.imwrite(str(fish_template_path), self.fish_template)
-
-            if self.capsule_template is not None:
-                capsule_template_path = self.debug_dir / "capsule_template.png"
-                cv2.imwrite(str(capsule_template_path), self.capsule_template)
 
         debug_img = screenshot_bgr.copy()
 
@@ -75,45 +65,8 @@ class Debugger:
             cv2.rectangle(debug_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(debug_img, "CATCH", (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
 
-        if fish_pos is not None and self.fish_template is not None:
-            h, w = self.fish_template.shape
-            x1 = max(0, fish_pos[0] - w // 2)
-            y1 = max(0, fish_pos[1] - h // 2)
-            x2 = min(debug_img.shape[1], fish_pos[0] + w // 2)
-            y2 = min(debug_img.shape[0], fish_pos[1] + h // 2)
-            cv2.rectangle(debug_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(debug_img, "FISH", (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
-
-        if capsule_pos is not None and self.capsule_template is not None:
-            h, w = self.capsule_template.shape
-            x1 = max(0, capsule_pos[0] - w // 2)
-            y1 = max(0, capsule_pos[1] - h // 2)
-            x2 = min(debug_img.shape[1], capsule_pos[0] + w // 2)
-            y2 = min(debug_img.shape[0], capsule_pos[1] + h // 2)
-            cv2.rectangle(debug_img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            cv2.putText(debug_img, "CAPSULE", (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 0), 1)
-
         debug_img_path = self.debug_dir / f"frame_{frame_num:04d}_debug.png"
         cv2.imwrite(str(debug_img_path), debug_img)
-
-        if self.capsule_template is not None:
-            if len(screenshot_bgr.shape) == 3:
-                screenshot_gray_for_match = cv2.cvtColor(screenshot_bgr, cv2.COLOR_BGR2GRAY)
-            else:
-                screenshot_gray_for_match = screenshot_gray
-
-            result = cv2.matchTemplate(screenshot_gray_for_match, self.capsule_template, cv2.TM_CCOEFF_NORMED)
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-
-            result_normalized = cv2.normalize(result, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
-            result_path = self.debug_dir / f"frame_{frame_num:04d}_capsule_match_result.png"
-            cv2.imwrite(str(result_path), result_normalized)
-
-            result_vis = cv2.cvtColor(result_normalized, cv2.COLOR_GRAY2BGR)
-            cv2.circle(result_vis, max_loc, 5, (0, 0, 255), -1)
-            cv2.putText(result_vis, f"Max: {max_val:.3f} @ {max_loc}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-            result_vis_path = self.debug_dir / f"frame_{frame_num:04d}_capsule_match_result_marked.png"
-            cv2.imwrite(str(result_vis_path), result_vis)
 
     def show_live(self, screenshot_bgr, detections: dict, window_name: str = "Debug - Duet Night Abyss Bot", window_pos=None):
         """Display a live debug overlay in an OpenCV window.

@@ -67,14 +67,10 @@ class FishingBot:
         print(f"  Debug mode: {DEBUG_MODE}")
         print(f"  Exit key: {EXIT_KEY.upper()}")
 
-        print(f"What type of Rod are you using?")
-        rod_idx = SelectionMenu.get_selection([r.capitalize() + " Rod" for r in self.template_loader.rod_types])
-
         # Load templates and run a short input test
         print("\nLoading templates...")
-        if not self.template_loader.load_templates(rod_idx):
+        if not self.template_loader.load_templates():
             print("\n❌ Error: Failed to load templates!")
-            print("   Create templates/fish.png and templates/capsule.png files.")
             return
 
         print(f"\n✓ All templates loaded.")
@@ -82,8 +78,6 @@ class FishingBot:
         # Initialize debugger for live overlays (used by waiting/biting/reeling)
         self.debug = Debugger(
             self.base_dir / "debug",
-            fish_template=self.template_loader.fish_template,
-            capsule_template=self.template_loader.capsule_template,
             cast_template=self.template_loader.cast_template,
             bite_template=self.template_loader.bite_template,
             catch_template=self.template_loader.catch_template,
@@ -91,17 +85,17 @@ class FishingBot:
 
         print("\n⚠ Important: Running as administrator may be required for Space actions!")
         print("   If not working, try running the script as Administrator.")
-        # print("\nTesting Space (1 second)...")
-        # print("   Make sure the game window is active!")
-        # time.sleep(1)
-        # try:
-        #     self.input.hold_space()
-        #     time.sleep(0.1)
-        #     self.input.release_space()
-        #     print("✓ Space test successful!")
-        # except Exception as e:
-        #     print(f"⚠ Space test error: {e}")
-        #     print("   Try running as Administrator!")
+        print("\nTesting Space (1 second)...")
+        print("   Make sure the game window is active!")
+        time.sleep(1)
+        try:
+            self.input.hold_space()
+            time.sleep(0.1)
+            self.input.release_space()
+            print("✓ Space test successful!")
+        except Exception as e:
+            print(f"⚠ Space test error: {e}")
+            print("   Try running as Administrator!")
 
         print("\nStarting in 3 seconds...")
         print("Position your game window appropriately!")
