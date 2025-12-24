@@ -91,17 +91,17 @@ class FishingBot:
 
         print("\n⚠ Important: Running as administrator may be required for Space actions!")
         print("   If not working, try running the script as Administrator.")
-        print("\nTesting Space (1 second)...")
-        print("   Make sure the game window is active!")
-        time.sleep(1)
-        try:
-            self.input.hold_space()
-            time.sleep(0.1)
-            self.input.release_space()
-            print("✓ Space test successful!")
-        except Exception as e:
-            print(f"⚠ Space test error: {e}")
-            print("   Try running as Administrator!")
+        # print("\nTesting Space (1 second)...")
+        # print("   Make sure the game window is active!")
+        # time.sleep(1)
+        # try:
+        #     self.input.hold_space()
+        #     time.sleep(0.1)
+        #     self.input.release_space()
+        #     print("✓ Space test successful!")
+        # except Exception as e:
+        #     print(f"⚠ Space test error: {e}")
+        #     print("   Try running as Administrator!")
 
         print("\nStarting in 3 seconds...")
         print("Position your game window appropriately!")
@@ -316,8 +316,8 @@ class FishingBot:
                 capsule_pos, capsule_confidence = Detector.find_template(screenshot_bgr, self.template_loader.capsule_template, CAPSULE_THRESHOLD)
                 # print(f"Fish confidence: {fish_confidence:.3f}, Capsule confidence: {capsule_confidence:.3f}")
 
-                # if DEBUG_MODE and (frame_count % 10 == 0 or fish_pos is not None or capsule_pos is not None):
-                #     self.debug.save_debug_images(screenshot_bgr, screenshot_gray, fish_pos, capsule_pos, frame_count)
+                if DEBUG_MODE and (frame_count % 10 == 0 or fish_pos is not None or capsule_pos is not None):
+                    self.debug.save_debug_images(screenshot_bgr, screenshot_gray, None, None, None, fish_pos, capsule_pos, frame_count)
 
                 action = ""
                 if capsule_pos is not None:
@@ -387,6 +387,7 @@ class FishingBot:
                     action = "RELEASE (no capsule)"
                 else:
                     self.input.release_space()
+                    time.sleep(0.1)
                     if InputFix.DONE == self.input_fixed:
                         self.input_fixed = InputFix.NOT
                     action = "SKIP (fish caoguht)"
