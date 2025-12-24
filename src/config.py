@@ -32,7 +32,7 @@ TARGET_FPS = 60
 FRAME_DELAY = 0.1
 
 # Debug / window
-DEBUG_MODE = True
+DEBUG_MODE = False
 DEBUG_SAVE_IMAGES = False
 DEBUG_WINDOW_POSITION = None
 EXIT_KEY = 'esc'

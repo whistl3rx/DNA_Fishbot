@@ -33,7 +33,7 @@ class InputController:
             except Exception as e:
                 print(f"⚠ Error releasing A (Space): {e}")
 
-    def press_space(self, hold_duration=None):
+    def press_space(self, hold_duration=0.1):
         try:
             self.hold_space()
 

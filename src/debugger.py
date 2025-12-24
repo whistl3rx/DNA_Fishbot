@@ -13,7 +13,7 @@ class Debugger:
         self.bite_template = bite_template
         self.catch_template = catch_template
 
-    def save_debug_images(self, screenshot_bgr, screenshot_gray, cast_pos, bite_pos, catch_pos, fish_pos, capsule_pos, frame_num):
+    def save_debug_images(self, screenshot_bgr, screenshot_gray, cast_pos, bite_pos, catch_pos, frame_num):
         if not DEBUG_SAVE_IMAGES:
             return
 
